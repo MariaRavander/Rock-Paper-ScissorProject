@@ -11,8 +11,9 @@ import java.nio.channels.SocketChannel;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import server.controller.Controller;
+import java.util.concurrent.ForkJoinPool;
 
-public class PlayerHandler {
+public class PlayerHandler implements Runnable{
     private final Server server;
     private final SocketChannel playerChannel;
     private final Controller contr;
@@ -31,7 +32,9 @@ public class PlayerHandler {
         this.contr = contr;
     }
     
-    public void handlePlayerRequest() {
+    @Override
+    public void run() {
+    
         while (msgSplitter.hasNext()) {
             Message msg = new Message(msgSplitter.nextMsg());
             switch(msg.msgType) {
@@ -137,7 +140,7 @@ public class PlayerHandler {
         }
         String recvdString = extractMessageFromBuffer();
         msgSplitter.appendRecvdString(recvdString);
-        handlePlayerRequest();
+        ForkJoinPool.commonPool().execute(this);
     }
     
     private String extractMessageFromBuffer() {
